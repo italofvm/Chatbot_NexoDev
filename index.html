@@ -6,6 +6,8 @@
     <title>NexoBot - Assistente de IA</title>
     <!-- Carrega Tailwind CSS para estilização rápida e responsiva -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- DOMPurify para sanitizar HTML vindo da IA (prevenção contra XSS) -->
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@2.4.0/dist/purify.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         body {
@@ -244,7 +246,6 @@
         const mainChatInterface = document.getElementById('main-chat-interface');
         const backButton = document.getElementById('back-button'); 
         
-        const apiKey = ""; 
         const apiUrl = "/api/chat";
 
         // --- CONSTANTES DE TEMPO (em milissegundos) para a nova lógica ---
@@ -502,7 +503,13 @@
                 }
             }
 
-            messageBubble.innerHTML = formattedText;
+            // Sanitiza o HTML antes de inserir para evitar XSS caso a IA retorne HTML/links
+            if (window.DOMPurify && typeof DOMPurify.sanitize === 'function') {
+                messageBubble.innerHTML = DOMPurify.sanitize(formattedText, { USE_PROFILES: { html: true } });
+            } else {
+                // Fallback: insere como texto (menos recursos visuais)
+                messageBubble.textContent = formattedText.replace(/<br>/g, '\n');
+            }
             messageWrapper.appendChild(messageBubble);
             chatWindow.appendChild(messageWrapper);
             
@@ -785,8 +792,7 @@
 
             for (let i = 0; i < maxRetries; i++) {
                 try {
-                    const urlWithKey = `${apiUrl}?key=${apiKey}`;
-                    const response = await fetch(urlWithKey, {
+                    const response = await fetch(apiUrl, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
