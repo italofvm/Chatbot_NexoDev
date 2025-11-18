@@ -36,18 +36,39 @@ module.exports = async (req, res) => {
             });
         }
 
-        // Se o cliente enviar `history` (array), convertemos para `contents`.
-        let geminiBody;
+        // Se o cliente enviar `history` (array) ou `contents`, convertemos/normalizamos.
+        // Construímos explicitamente um body contendo somente campos aceitos pela API do Gemini.
+        // Campos suportados: `contents`, `systemInstruction`, `tools`.
+        let geminiBody = {};
+
         if (Array.isArray(payload.history)) {
-            geminiBody = {
-                contents: payload.history,
-                tools: payload.tools || [],
-                systemInstruction: payload.systemInstruction || undefined,
-                config: payload.config || undefined
-            };
-        } else {
-            // Presume que o cliente já montou um body compatível com a API do Gemini.
-            geminiBody = payload;
+            geminiBody.contents = payload.history;
+        } else if (Array.isArray(payload.contents)) {
+            geminiBody.contents = payload.contents;
+        }
+
+        if (payload.systemInstruction && typeof payload.systemInstruction === 'object') {
+            geminiBody.systemInstruction = payload.systemInstruction;
+        }
+
+        // Filtra `tools` para apenas entradas conhecidas (ex: google_search).
+        if (Array.isArray(payload.tools)) {
+            geminiBody.tools = payload.tools.filter(tool => {
+                if (!tool || typeof tool !== 'object') return false;
+                const key = Object.keys(tool)[0];
+                return ['google_search'].includes(key);
+            });
+        }
+
+        // DEBUG: Logar apenas metadados (não logar conteúdo sensível)
+        try {
+            console.log('api/chat - received payload keys:', Object.keys(payload));
+            console.log('api/chat - forwarding to Gemini keys:', Object.keys(geminiBody));
+            if (Array.isArray(geminiBody.contents)) {
+                console.log('api/chat - contents length:', geminiBody.contents.length);
+            }
+        } catch (e) {
+            // Não falhar se console.log der errado
         }
 
         // 4. Chamada para a API do Gemini (USANDO A CHAVE DO AMBIENTE)
