@@ -86,21 +86,63 @@ Para incorporar o chat em outra página:
 ## ⚠️ Troubleshooting
 
 ### Erro 401 (Unauthorized)
-- Verifique se a variável `GEMINI_API_KEY` está configurada no Vercel
-- Confirme se a chave da API está correta (sem espaços extras)
-- Faça um **Redeploy** após adicionar a variável
-- Teste a chave em: https://aistudio.google.com/app/apikey
-- Verifique se há créditos disponíveis na sua conta do Google AI Studio
+
+**Causa:** A chave da API não está configurada ou é inválida.
+
+**Solução:**
+1. Acesse o painel do Vercel → Seu projeto → Settings → Environment Variables
+2. Verifique se existe a variável `GEMINI_API_KEY`
+3. Se não existir, adicione:
+   - Key: `GEMINI_API_KEY`
+   - Value: Sua chave (obtenha em https://aistudio.google.com/app/apikey)
+   - Environments: Marque todas ✓
+4. **IMPORTANTE:** Após adicionar/modificar, faça um **Redeploy**:
+   - Deployments → 3 pontinhos → Redeploy
+5. Teste a chave diretamente em: https://aistudio.google.com/app/apikey
 
 ### Erro 500 (Internal Server Error)
-- Verifique os logs no Vercel Dashboard
-- Confirme se o arquivo `api/chat.js` está presente
-- Verifique se a variável de ambiente está acessível
 
-### Chat não responde
-- Abra o Console do navegador (F12) para ver erros
-- Verifique se a URL `/api/chat` está acessível
-- Confirme se há créditos disponíveis na sua conta do Google AI Studio
+**Causa:** Problema no servidor ou configuração incorreta.
+
+**Solução:**
+1. Verifique os logs no Vercel:
+   - Deployments → Clique no deploy → Functions → Veja os logs
+2. Confirme se o arquivo `api/chat.js` existe no repositório
+3. Verifique se a variável `GEMINI_API_KEY` está acessível
+4. Tente fazer um novo deploy do zero
+
+### Erro 429 (Too Many Requests)
+
+**Causa:** Limite de requisições da API atingido.
+
+**Solução:**
+1. Aguarde alguns minutos antes de tentar novamente
+2. Verifique sua cota em: https://aistudio.google.com/app/apikey
+3. Considere fazer upgrade do plano se necessário
+
+### Chat não responde / Erro de conexão
+
+**Solução:**
+1. Abra o Console do navegador (F12 → Console)
+2. Procure por erros em vermelho
+3. Verifique se a URL `/api/chat` está acessível:
+   - Abra: `https://seu-dominio.vercel.app/api/chat`
+   - Deve retornar erro 405 (Method Not Allowed) - isso é normal!
+4. Se retornar 404, o arquivo `api/chat.js` não foi deployado
+5. Confirme se há créditos disponíveis na sua conta do Google AI Studio
+
+### Debug Avançado
+
+Para ver logs detalhados no navegador:
+1. Abra o Console (F12)
+2. Envie uma mensagem no chat
+3. Você verá logs como:
+   ```
+   Enviando requisição para: /api/chat
+   Payload: {contentsLength: 1, hasSystemInstruction: true}
+   Resposta recebida: 200 OK
+   ```
+4. Se houver erro, copie a mensagem e verifique o código de status
 
 ## 📞 Suporte
 
