@@ -78,12 +78,22 @@ module.exports = async (req, res) => {
         const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
         try {
-            const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent";
+            // Decide o método de autenticação: se a chave for um token OAuth (ex: começa com 'ya29.'),
+            // usamos Authorization: Bearer. Caso contrário, assumimos que é uma API key e usamos ?key=.
+            const baseUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent";
+            let url = baseUrl;
+            const headers = { 'Content-Type': 'application/json' };
 
-            const headers = {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${GEMINI_API_KEY}`
-            };
+            const isOAuthLike = typeof GEMINI_API_KEY === 'string' && (GEMINI_API_KEY.startsWith('ya29.') || GEMINI_API_KEY.startsWith('ya29_'));
+
+            if (isOAuthLike) {
+                headers['Authorization'] = `Bearer ${GEMINI_API_KEY}`;
+                console.log('api/chat - using Authorization: Bearer for Gemini');
+            } else {
+                // Usa query param key= para API keys (Google API Keys)
+                url = `${baseUrl}?key=${encodeURIComponent(GEMINI_API_KEY)}`;
+                console.log('api/chat - using API key via query param for Gemini');
+            }
 
             const geminiResponse = await fetch(url, {
                 method: 'POST',
