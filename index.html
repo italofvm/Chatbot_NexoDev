@@ -209,8 +209,8 @@ const selectionScreen = document.getElementById('agent-selection-screen');
 const mainChatInterface = document.getElementById('main-chat-interface');
 const backButton = document.getElementById('back-button');
 
-const apiKey = "";
-const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent";
+// Usa a API serverless do Vercel (mais seguro - não expõe a chave)
+const apiUrl = "/api/chat";
 
 const OFFLINE_DURATION_MS = 5 * 60 * 1000;
 const ONLINE_MIN_MS = 2 * 60 * 60 * 1000;
@@ -508,12 +508,12 @@ contents: apiHistory,
 systemInstruction: {
 parts: [{ text: systemPrompt }]
 },
+tools: [{ "google_search": {} }]
 };
 
 for (let i = 0; i < maxRetries; i++) {
 try {
-const urlWithKey = `${apiUrl}?key=${apiKey}`;
-const response = await fetch(urlWithKey, {
+const response = await fetch(apiUrl, {
 method: 'POST',
 headers: { 'Content-Type': 'application/json' },
 body: JSON.stringify(payload)
@@ -531,11 +531,18 @@ return { text, showButtons: false };
 } else {
 throw new Error("Resposta da API vazia ou malformada.");
 }
+} else {
+const errorData = await response.json().catch(() => ({}));
+console.error('Erro da API:', response.status, errorData);
+throw new Error(`Erro ${response.status}: ${errorData.message || response.statusText}`);
+}
+} catch (error) {
+console.warn(`Tentativa ${i + 1} falhou.`, error);
+if (i === maxRetries - 1) {
+throw error;
 }
 const delay = Math.pow(2, i) * 1000 + (Math.random() * 1000);
 await new Promise(resolve => setTimeout(resolve, delay));
-} catch (error) {
-console.warn(`Tentativa ${i + 1} falhou.`, error);
 }
 }
 throw new Error("Todas as tentativas de API falharam após o backoff exponencial.");
