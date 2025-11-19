@@ -12,7 +12,7 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f7f9fb;
+            background-color: #0f172a; /* Tema escuro - Slate 900 */
             min-height: 100vh;
         }
         
@@ -26,11 +26,12 @@
         
         /* O contêiner de chat (a janela que abre) */
         #chat-container {
-            height: 500px; /* Altura padrão para um widget flutuante */
+            height: 650px; /* Altura aumentada */
             width: 100%;
-            max-width: 480px; /* Largura aumentada para o chatbox */
+            max-width: 550px; /* Largura aumentada */
             display: flex;
             flex-direction: column;
+            background-color: #1e293b; /* Tema escuro - Slate 800 */
             
             /* Estado inicial: fechado (escondido) */
             transform: scale(0.5);
@@ -50,7 +51,7 @@
             transform: scale(1);
             opacity: 1;
             pointer-events: auto;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.5);
         }
         
         /* Estilos da janela de mensagens e bolhas */
@@ -58,16 +59,44 @@
             flex: 1;
             min-height: 0;
             overflow-y: auto;
+            overflow-x: hidden; /* Evita scroll horizontal */
             scroll-behavior: smooth;
             display: flex;
             flex-direction: column;
+            padding: 1rem;
         }
+        
+        /* Customização da scrollbar para tema escuro */
+        #chat-window::-webkit-scrollbar,
+        #agent-selection-screen::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        #chat-window::-webkit-scrollbar-track,
+        #agent-selection-screen::-webkit-scrollbar-track {
+            background: #0f172a;
+            border-radius: 4px;
+        }
+        
+        #chat-window::-webkit-scrollbar-thumb,
+        #agent-selection-screen::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+        
+        #chat-window::-webkit-scrollbar-thumb:hover,
+        #agent-selection-screen::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+        
         .message-bubble {
-            max-width: 80%;
-            border-radius: 1.25rem; /* Um pouco mais arredondado para suavidade */
+            max-width: 85%;
+            border-radius: 1.25rem;
             padding: 0.75rem 1rem;
             margin-bottom: 0.5rem;
-            line-height: 1.4;
+            line-height: 1.5;
+            word-wrap: break-word; /* Quebra palavras longas */
+            overflow-wrap: break-word; /* Garante quebra de linha */
         }
         .user-message {
             background-color: #4f46e5; /* Indigo 600 */
@@ -76,8 +105,8 @@
             border-bottom-right-radius: 0.5rem;
         }
         .bot-message {
-            background-color: #e5e7eb; /* Gray 200 */
-            color: #1f2937; /* Gray 800 */
+            background-color: #334155; /* Slate 700 - tema escuro */
+            color: #e2e8f0; /* Slate 200 - texto claro */
             margin-right: auto;
             border-bottom-left-radius: 0.5rem;
         }
@@ -85,7 +114,7 @@
         .ai-loading-dot {
             width: 8px;
             height: 8px;
-            background-color: #4f46e5;
+            background-color: #818cf8; /* Indigo 400 - mais claro para tema escuro */
             border-radius: 50%;
             display: inline-block;
             margin: 0 2px;
@@ -100,6 +129,8 @@
         
         .agent-card {
             transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+            background-color: #334155; /* Slate 700 - tema escuro */
+            border-color: #475569; /* Slate 600 */
         }
         /* Estilo para cartão clicável (Online) */
         .agent-card.active {
@@ -107,13 +138,14 @@
         }
         .agent-card.active:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            background-color: #3f4b5f;
         }
         /* Estilo para cartão desabilitado (Ausente/Offline) */
         .agent-card.inactive {
             opacity: 0.5;
             cursor: not-allowed;
-            background-color: #f3f4f6;
+            background-color: #1e293b; /* Slate 800 */
         }
         
         /* Status Dot */
@@ -127,9 +159,27 @@
         
         /* FIX DO LAYOUT: Garante que a área de input tenha um padding inferior suficiente */
         #input-area {
-            padding-bottom: 1rem; /* Volta ao padding padrão, pois o FAB X foi movido */
-            position: relative; /* Para garantir o z-index correto dos elementos internos */
+            padding: 1rem;
+            position: relative;
             z-index: 10;
+            background-color: #1e293b; /* Slate 800 - tema escuro */
+            border-top: 1px solid #334155; /* Slate 700 */
+        }
+        
+        /* Estilo do input para tema escuro */
+        #user-input {
+            background-color: #0f172a; /* Slate 900 */
+            color: #e2e8f0; /* Slate 200 */
+            border-color: #475569; /* Slate 600 */
+        }
+        
+        #user-input::placeholder {
+            color: #64748b; /* Slate 500 */
+        }
+        
+        #user-input:focus {
+            background-color: #1e293b; /* Slate 800 */
+            border-color: #6366f1; /* Indigo 500 */
         }
         
         /* Novo estilo para o FAB X (fechar) que agora fica no header do chat */
@@ -187,21 +237,21 @@
             </div>
 
             <!-- Agent Selection Screen (Mostra os agentes para escolha) -->
-            <div id="agent-selection-screen" class="flex-grow p-4 space-y-4 overflow-y-auto flex flex-col">
+            <div id="agent-selection-screen" class="flex-1 overflow-y-auto p-4 space-y-4">
                 <!-- Conteúdo gerado via JavaScript -->
             </div>
 
             <!-- Main Chat Interface (Escondido até que um agente seja selecionado) -->
-            <div id="main-chat-interface" class="flex-grow flex flex-col hidden">
+            <div id="main-chat-interface" class="flex-1 flex flex-col hidden min-h-0"></div>
                 <!-- Chat Window (Messages) -->
-                <div id="chat-window" class="flex-grow p-4 space-y-3">
+                <div id="chat-window" class="flex-1 overflow-y-auto overflow-x-hidden">
                     <!-- Mensagens serão inseridas via JavaScript -->
                     <!-- Dica inicial será inserida/removida no JS -->
                 </div>
 
                 <!-- Input Area -->
-                <div id="input-area" class="p-4 border-t border-gray-200">
-                    <div id="loading-indicator" class="text-sm text-indigo-600 mb-2 hidden">
+                <div id="input-area">
+                    <div id="loading-indicator" class="text-sm text-indigo-400 mb-2 hidden">
                         <span id="thinking-name"></span> digitando
                         <span class="ai-loading-dot"></span>
                         <span class="ai-loading-dot"></span>
@@ -210,7 +260,7 @@
                     <div class="flex items-center relative">
                         <!-- Input field -->
                         <input type="text" id="user-input" placeholder="Pergunte sobre serviços, React, Node.js..."
-                               class="flex-grow p-3 border border-gray-300 rounded-l-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow">
+                               class="flex-grow p-3 border rounded-l-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow">
                         <!-- Send Button -->
                         <button id="send-button"
                                 class="px-4 py-3 bg-indigo-600 text-white font-semibold rounded-r-xl hover:bg-indigo-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
@@ -281,13 +331,12 @@
             { name: "Italo", role: "Desenvolvedor Front-end", skill: "Front-end, React, UI/UX, Vendas", shift: 'day' }, 
             { name: "João Paulo", role: "Desenvolvedor Back-end", skill: "Back-end, Node.js, Banco de Dados, APIs", shift: 'day' }, 
             { name: "Evellin", role: "Suporte Técnico", skill: "Suporte, Infraestrutura, Hospedagem, TI", shift: 'day' }, 
+            { name: "Maria", role: "Consultora de Vendas", skill: "Vendas, Propostas, Fechamento", shift: 'day' }, 
             
             // Agentes Noturnos (18h às 7h59) - DISPONIBILIDADE PADRÃO
             { name: "Carlos", role: "Especialista em APIs e Infra", skill: "Node.js, Back-end, APIs, Infraestrutura", shift: 'night' }, 
             { name: "Pedro", role: "Consultor UI/UX", skill: "Design UX/UI, Prototipagem, Estratégia Digital", shift: 'night' }, 
             
-            // Agentes de Suporte (sem horário definido, para simular Ausente/Offline)
-            { name: "Maria", role: "Consultora de Vendas", skill: "Vendas, Propostas, Fechamento", shift: 'any' }, 
         ];
 
         let AGENTS = []; // Lista de agentes processada com o timestamp 'lastActive'
@@ -447,8 +496,8 @@
             // 1. Converte Headers (#, ##, ...) em <strong> e remove o #
             formattedText = formattedText.replace(/^#{1,6}\s*(.*)$/gm, '<strong>$1</strong>');
 
-            // 2. Converte [link text](url) para <a>
-            formattedText = formattedText.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" class="underline hover:text-indigo-800">$1</a>');
+            // 2. Converte [link text](url) para <a> com estilo para tema escuro
+            formattedText = formattedText.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" class="underline text-indigo-300 hover:text-indigo-200">$1</a>');
 
             // 3. Converte **bold** para <strong> (Prioriza a conversão para <strong>)
             formattedText = formattedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'); 
@@ -503,10 +552,10 @@
                                 domain = source.uri.substring(0, 30) + '...';
                             }
 
-                            return `<li class="mt-1"><a href="${source.uri}" target="_blank" class="underline hover:text-indigo-800">${source.title} (${domain})</a></li>`;
+                            return `<li class="mt-1"><a href="${source.uri}" target="_blank" class="underline text-indigo-300 hover:text-indigo-200">${source.title} (${domain})</a></li>`;
                         }).join('');
 
-                        formattedText += `<br><br><div class="pt-2 border-t border-gray-300 text-xs font-semibold">Fonte(s):<ul class="list-disc pl-5 font-normal">${sourceList}</ul></div>`;
+                        formattedText += `<br><br><div class="pt-2 border-t border-slate-600 text-xs font-semibold">Fonte(s):<ul class="list-disc pl-5 font-normal">${sourceList}</ul></div>`;
                     }
                 } catch (e) {
                     console.error("Erro ao analisar rawText para citações:", e);
@@ -542,25 +591,6 @@
         }
         
         /**
-         * Desenha as mensagens na janela de chat a partir do histórico.
-         */
-        function renderChatHistory() {
-            chatWindow.innerHTML = '';
-            
-            if (!isChatInitialized) {
-                chatWindow.innerHTML = `<div id="welcome-tip" class="text-center text-sm text-gray-500 italic p-2 border-b mb-4">
-                        Diga algo para ${selectedAgent.name} e inicie a conversa.
-                    </div>`;
-            } else {
-                chatHistory.forEach(msg => {
-                    addMessageToUi(msg.text, msg.isUser, msg.rawText);
-                });
-            }
-
-            chatWindow.scrollTop = chatWindow.scrollHeight;
-        }
-
-        /**
          * Reseta o estado e volta para a tela de seleção.
          */
         function goBackToSelection() {
@@ -591,24 +621,24 @@
             if (AGENTS.length === 0) initializeAgents();
             
             selectionScreen.innerHTML = `
-                <p class="text-gray-700 text-center mb-6">Selecione o especialista que está <strong>Online</strong> para iniciar a conversa:</p>
+                <p class="text-slate-300 text-center mb-6">Selecione o especialista que está <strong>Online</strong> para iniciar a conversa:</p>
             `;
 
             AGENTS.forEach(agent => {
                 const { simulatedStatus, dotClass, isClickable } = agent;
                 
                 const card = document.createElement('div');
-                card.className = `agent-card p-4 bg-gray-50 border border-gray-200 rounded-xl flex items-center shadow-sm hover:bg-white ${isClickable ? 'active' : 'inactive'}`;
+                card.className = `agent-card p-4 border rounded-xl flex items-center shadow-sm ${isClickable ? 'active' : 'inactive'}`;
                 card.innerHTML = `
-                    <div class="flex-shrink-0 w-10 h-10 bg-indigo-200 rounded-full flex items-center justify-center text-indigo-700 font-bold text-lg mr-4">
+                    <div class="flex-shrink-0 w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-lg mr-4">
                         ${agent.name[0]}
                     </div>
                     <div class="flex-grow">
-                        <p class="font-semibold text-gray-900">${agent.name}</p>
-                        <p class="text-sm text-indigo-600">${agent.role}</p>
+                        <p class="font-semibold text-slate-100">${agent.name}</p>
+                        <p class="text-sm text-indigo-400">${agent.role}</p>
                     </div>
                     <div class="text-right flex flex-col items-end">
-                        <span class="flex items-center text-xs font-medium text-gray-600">
+                        <span class="flex items-center text-xs font-medium text-slate-400">
                             <span class="status-dot ${dotClass}"></span>
                             ${simulatedStatus}
                         </span>
@@ -671,6 +701,25 @@
             thinkingNameSpan.textContent = selectedAgent.name;
 
             renderChatHistory(); 
+        }
+        
+        /**
+         * Desenha as mensagens na janela de chat a partir do histórico.
+         */
+        function renderChatHistory() {
+            chatWindow.innerHTML = '';
+            
+            if (!isChatInitialized) {
+                chatWindow.innerHTML = `<div id="welcome-tip" class="text-center text-sm text-slate-400 italic p-2 border-b border-slate-600 mb-4">
+                        Diga algo para ${selectedAgent.name} e inicie a conversa.
+                    </div>`;
+            } else {
+                chatHistory.forEach(msg => {
+                    addMessageToUi(msg.text, msg.isUser, msg.rawText);
+                });
+            }
+
+            chatWindow.scrollTop = chatWindow.scrollHeight;
         }
 
 
@@ -735,10 +784,10 @@
             
             <br>
             <span class="block mt-2">
-                &bull; <strong>WhatsApp:</strong> <a href="https://wa.me/5599999999999" target="_blank" class="underline hover:text-indigo-800">Clique para iniciar uma conversa!</a>
+                &bull; <strong>WhatsApp:</strong> <a href="https://wa.me/5599999999999" target="_blank" class="underline text-indigo-300 hover:text-indigo-200">Clique para iniciar uma conversa!</a>
             </span>
             <span class="block mt-1">
-                &bull; <strong>Instagram:</strong> <a href="https://instagram.com/nexodev" target="_blank" class="underline hover:text-indigo-800">@NexoDev</a> (Mensagem Direta)
+                &bull; <strong>Instagram:</strong> <a href="https://instagram.com/nexodev" target="_blank" class="underline text-indigo-300 hover:text-indigo-200">@NexoDev</a> (Mensagem Direta)
             </span>
             <br>
             
