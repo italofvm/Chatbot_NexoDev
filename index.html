@@ -29,6 +29,8 @@
             height: 500px; /* Altura padrão para um widget flutuante */
             width: 100%;
             max-width: 480px; /* Largura aumentada para o chatbox */
+            display: flex;
+            flex-direction: column;
             
             /* Estado inicial: fechado (escondido) */
             transform: scale(0.5);
@@ -53,9 +55,12 @@
         
         /* Estilos da janela de mensagens e bolhas */
         #chat-window {
-            height: 100%;
+            flex: 1;
+            min-height: 0;
             overflow-y: auto;
             scroll-behavior: smooth;
+            display: flex;
+            flex-direction: column;
         }
         .message-bubble {
             max-width: 80%;
@@ -177,7 +182,7 @@
             </div>
 
             <!-- Agent Selection Screen (Mostra os agentes para escolha) -->
-            <div id="agent-selection-screen" class="flex-grow p-4 space-y-4 overflow-y-auto">
+            <div id="agent-selection-screen" class="flex-grow p-4 space-y-4 overflow-y-auto flex flex-col">
                 <!-- Conteúdo gerado via JavaScript -->
             </div>
 
